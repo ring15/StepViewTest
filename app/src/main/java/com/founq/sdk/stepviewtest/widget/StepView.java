@@ -13,6 +13,7 @@ import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.founq.sdk.stepviewtest.R;
@@ -53,6 +54,14 @@ public class StepView extends View {
     private Path mLinePath;
 
     private int horizonStart;
+
+    private int offsetX;
+    private int offsetY;
+    private int lastX = 0;
+    private int lastY = 0;
+    private int tempX;
+    private int tempY;
+
 
     public StepView(Context context) {
         this(context, null);
@@ -135,22 +144,22 @@ public class StepView extends View {
         if (mCompletingNum == mText.size()) {
             if (mType == 1) {
                 for (int i = 0; i < mText.size(); i++) {
-                    Rect rect = new Rect(horizonStart + i * (dip2px(mContext, 20) + mLineSize), dip2px(mContext, 20),
-                            horizonStart + i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20), dip2px(mContext, 40));
+                    Rect rect = new Rect(offsetX + horizonStart + i * (dip2px(mContext, 20) + mLineSize), dip2px(mContext, 20),
+                            offsetX + horizonStart + i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20), dip2px(mContext, 40));
                     mCompletedIcon.setBounds(rect);
                     mCompletedIcon.draw(canvas);
                 }
             } else if (mType == 2) {
                 for (int i = 0; i < mText.size(); i++) {
-                    Rect rect = new Rect(dip2px(mContext, 20), i * (dip2px(mContext, 20) + mLineSize),
-                            dip2px(mContext, 40), i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20));
+                    Rect rect = new Rect(dip2px(mContext, 20), offsetY + i * (dip2px(mContext, 20) + mLineSize),
+                            dip2px(mContext, 40), offsetY + i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20));
                     mCompletedIcon.setBounds(rect);
                     mCompletedIcon.draw(canvas);
                 }
             } else {
                 for (int i = 0; i < mText.size(); i++) {
-                    Rect rect = new Rect(dip2px(mContext, 20), i * (dip2px(mContext, 20) + mLineSize),
-                            dip2px(mContext, 40), i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20));
+                    Rect rect = new Rect(dip2px(mContext, 20), offsetY + i * (dip2px(mContext, 20) + mLineSize),
+                            dip2px(mContext, 40), offsetY + i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20));
                     mCompletedIcon.setBounds(rect);
                     mCompletedIcon.draw(canvas);
                 }
@@ -158,8 +167,8 @@ public class StepView extends View {
         } else {
             if (mType == 1) {
                 for (int i = 0; i < mText.size(); i++) {
-                    Rect rect = new Rect(horizonStart + i * (dip2px(mContext, 20) + mLineSize), dip2px(mContext, 20),
-                            horizonStart + i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20), dip2px(mContext, 40));
+                    Rect rect = new Rect(offsetX + horizonStart + i * (dip2px(mContext, 20) + mLineSize), dip2px(mContext, 20),
+                            offsetX + horizonStart + i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20), dip2px(mContext, 40));
                     if (i < mCompletingNum) {
                         mCompletedIcon.setBounds(rect);
                         mCompletedIcon.draw(canvas);
@@ -173,8 +182,8 @@ public class StepView extends View {
                 }
             } else if (mType == 2) {
                 for (int i = 0; i < mText.size(); i++) {
-                    Rect rect = new Rect(dip2px(mContext, 20), i * (dip2px(mContext, 20) + mLineSize),
-                            dip2px(mContext, 40), i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20));
+                    Rect rect = new Rect(dip2px(mContext, 20), offsetY + i * (dip2px(mContext, 20) + mLineSize),
+                            dip2px(mContext, 40), offsetY + i * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20));
                     if (i < mCompletingNum) {
                         mCompletedIcon.setBounds(rect);
                         mCompletedIcon.draw(canvas);
@@ -189,8 +198,8 @@ public class StepView extends View {
             } else {
                 for (int i = 0; i < mText.size(); i++) {
                     int j = mText.size() - 1 - i;
-                    Rect rect = new Rect(dip2px(mContext, 20), j * (dip2px(mContext, 20) + mLineSize),
-                            dip2px(mContext, 40), j * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20));
+                    Rect rect = new Rect(dip2px(mContext, 20), offsetY + j * (dip2px(mContext, 20) + mLineSize),
+                            dip2px(mContext, 40), offsetY + j * (dip2px(mContext, 20) + mLineSize) + dip2px(mContext, 20));
                     if (i < mCompletingNum) {
                         mCompletedIcon.setBounds(rect);
                         mCompletedIcon.draw(canvas);
@@ -210,12 +219,12 @@ public class StepView extends View {
         if (mType == 1) {
             for (int i = 0; i < mText.size() - 1; i++) {
                 if (i < mCompletingNum) {
-                    canvas.drawLine(horizonStart + dip2px(mContext, 20) * (i + 1) + mLineSize * i, dip2px(mContext, 30),
-                            horizonStart + (dip2px(mContext, 20) + mLineSize) * (i + 1), dip2px(mContext, 30), mCompletedLinePaint);
+                    canvas.drawLine(offsetX + horizonStart + dip2px(mContext, 20) * (i + 1) + mLineSize * i, dip2px(mContext, 30),
+                            offsetX + horizonStart + (dip2px(mContext, 20) + mLineSize) * (i + 1), dip2px(mContext, 30), mCompletedLinePaint);
                 } else {
                     mLinePath.reset();
-                    mLinePath.moveTo(horizonStart + dip2px(mContext, 20) * (i + 1) + mLineSize * i, dip2px(mContext, 30));
-                    mLinePath.lineTo(horizonStart + (dip2px(mContext, 20) + mLineSize) * (i + 1), dip2px(mContext, 30));
+                    mLinePath.moveTo(offsetX + horizonStart + dip2px(mContext, 20) * (i + 1) + mLineSize * i, dip2px(mContext, 30));
+                    mLinePath.lineTo(offsetX + horizonStart + (dip2px(mContext, 20) + mLineSize) * (i + 1), dip2px(mContext, 30));
                     canvas.drawPath(mLinePath, mUnCompletedLinePaint);
                 }
             }
@@ -223,13 +232,13 @@ public class StepView extends View {
         } else if (mType == 2) {
             for (int i = 0; i < mText.size() - 1; i++) {
                 if (i < mCompletingNum) {
-                    canvas.drawLine(dip2px(mContext, 30), dip2px(mContext, 20) * (i + 1) + mLineSize * i,
-                            dip2px(mContext, 30), (dip2px(mContext, 20) + mLineSize) * (i + 1), mCompletedLinePaint);
+                    canvas.drawLine(dip2px(mContext, 30), offsetY + dip2px(mContext, 20) * (i + 1) + mLineSize * i,
+                            dip2px(mContext, 30), offsetY + (dip2px(mContext, 20) + mLineSize) * (i + 1), mCompletedLinePaint);
                 } else {
                     //改用路径，支持硬件加速
                     mLinePath.reset();
-                    mLinePath.moveTo(dip2px(mContext, 30), dip2px(mContext, 20) * (i + 1) + mLineSize * i);
-                    mLinePath.lineTo(dip2px(mContext, 30), (dip2px(mContext, 20) + mLineSize) * (i + 1));
+                    mLinePath.moveTo(dip2px(mContext, 30), offsetY + dip2px(mContext, 20) * (i + 1) + mLineSize * i);
+                    mLinePath.lineTo(dip2px(mContext, 30), offsetY + (dip2px(mContext, 20) + mLineSize) * (i + 1));
                     canvas.drawPath(mLinePath, mUnCompletedLinePaint);
 //                    canvas.drawLine(dip2px(mContext, 30), dip2px(mContext, 20) * (i + 1) + mLineSize * i,
 //                            dip2px(mContext, 30), (dip2px(mContext, 20) + mLineSize) * (i + 1), mUnCompletedLinePaint);
@@ -239,12 +248,12 @@ public class StepView extends View {
             for (int i = 0; i < mText.size() - 1; i++) {
                 int j = mText.size() - 1 - i;
                 if (i < mCompletingNum) {
-                    canvas.drawLine(dip2px(mContext, 30), dip2px(mContext, 20) * j + mLineSize * (j - 1),
-                            dip2px(mContext, 30), (dip2px(mContext, 20) + mLineSize) * j, mCompletedLinePaint);
+                    canvas.drawLine(dip2px(mContext, 30), offsetY + dip2px(mContext, 20) * j + mLineSize * (j - 1),
+                            dip2px(mContext, 30), offsetY + (dip2px(mContext, 20) + mLineSize) * j, mCompletedLinePaint);
                 } else {
                     mLinePath.reset();
-                    mLinePath.moveTo(dip2px(mContext, 30), dip2px(mContext, 20) * j + mLineSize * (j - 1));
-                    mLinePath.lineTo(dip2px(mContext, 30), (dip2px(mContext, 20) + mLineSize) * j);
+                    mLinePath.moveTo(dip2px(mContext, 30), offsetY + dip2px(mContext, 20) * j + mLineSize * (j - 1));
+                    mLinePath.lineTo(dip2px(mContext, 30), offsetY + (dip2px(mContext, 20) + mLineSize) * j);
                     canvas.drawPath(mLinePath, mUnCompletedLinePaint);
                 }
             }
@@ -257,11 +266,11 @@ public class StepView extends View {
             for (int i = 0; i < mText.size(); i++) {
                 canvas.save();
                 if (i <= mCompletingNum) {
-                    canvas.translate(horizonStart + i * (dip2px(mContext, 20) + mLineSize),dip2px(mContext, 60));
+                    canvas.translate(offsetX + horizonStart + i * (dip2px(mContext, 20) + mLineSize), dip2px(mContext, 60));
                     StaticLayout myStaticLayout = new StaticLayout(mText.get(i), mCompletedTextPaint, mLineSize + dip2px(mContext, 20), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
                     myStaticLayout.draw(canvas);
                 } else {
-                    canvas.translate(horizonStart + i * (dip2px(mContext, 20) + mLineSize),dip2px(mContext, 60));
+                    canvas.translate(offsetX + horizonStart + i * (dip2px(mContext, 20) + mLineSize), dip2px(mContext, 60));
                     StaticLayout myStaticLayout = new StaticLayout(mText.get(i), mUnCompletedTextPaint, mLineSize + dip2px(mContext, 20), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
                     myStaticLayout.draw(canvas);
                 }
@@ -272,11 +281,11 @@ public class StepView extends View {
             for (int i = 0; i < mText.size(); i++) {
                 canvas.save();
                 if (i <= mCompletingNum) {
-                    canvas.translate(dip2px(mContext, 60), i * (dip2px(mContext, 20) + mLineSize));
+                    canvas.translate(dip2px(mContext, 60), offsetY + i * (dip2px(mContext, 20) + mLineSize));
                     StaticLayout myStaticLayout = new StaticLayout(mText.get(i), mCompletedTextPaint, canvas.getWidth() - dip2px(mContext, 60), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
                     myStaticLayout.draw(canvas);
                 } else {
-                    canvas.translate(dip2px(mContext, 60), i * (dip2px(mContext, 20) + mLineSize));
+                    canvas.translate(dip2px(mContext, 60), offsetY + i * (dip2px(mContext, 20) + mLineSize));
                     StaticLayout myStaticLayout = new StaticLayout(mText.get(i), mUnCompletedTextPaint, canvas.getWidth() - dip2px(mContext, 60), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
                     myStaticLayout.draw(canvas);
                 }
@@ -287,11 +296,11 @@ public class StepView extends View {
                 int j = mText.size() - 1 - i;
                 canvas.save();
                 if (i <= mCompletingNum) {
-                    canvas.translate(dip2px(mContext, 60), j * (dip2px(mContext, 20) + mLineSize));
+                    canvas.translate(dip2px(mContext, 60), offsetY + j * (dip2px(mContext, 20) + mLineSize));
                     StaticLayout myStaticLayout = new StaticLayout(mText.get(i), mCompletedTextPaint, canvas.getWidth() - dip2px(mContext, 60), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
                     myStaticLayout.draw(canvas);
                 } else {
-                    canvas.translate(dip2px(mContext, 60), j * (dip2px(mContext, 20) + mLineSize));
+                    canvas.translate(dip2px(mContext, 60), offsetY + j * (dip2px(mContext, 20) + mLineSize));
                     StaticLayout myStaticLayout = new StaticLayout(mText.get(i), mUnCompletedTextPaint, canvas.getWidth() - dip2px(mContext, 60), Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
                     myStaticLayout.draw(canvas);
                 }
@@ -299,6 +308,66 @@ public class StepView extends View {
             }
 
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (mType == 1) {
+            if ((getWidth() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize) > 0) {
+                return false;
+            }
+        } else {
+            if ((getHeight() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize) > 0) {
+                return true;
+            }
+        }
+        int x = (int) event.getX();
+        int y = (int) event.getY();
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_MOVE:
+                if (mType == 1) {
+                    offsetX = x - lastX + tempX;
+                    if (offsetX > (getWidth() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize) && offsetX <= 0) {
+                        invalidate();
+                    }
+                } else {
+                    offsetY = y - lastY + tempY;
+                    if (offsetY > (getHeight() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize) && offsetY <= 0) {
+                        invalidate();
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_DOWN:
+                lastX = x;
+                lastY = y;
+                break;
+            case MotionEvent.ACTION_UP:
+                if (mType == 1) {
+                    tempX += x - lastX;
+                    if (tempX > 0) {
+                        tempX = 0;
+                        offsetX = 0;
+                        invalidate();
+                    } else if (tempX < (getWidth() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize)) {
+                        tempX = (getWidth() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize);
+                        offsetX = (getWidth() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize);
+                        invalidate();
+                    }
+                } else {
+                    tempY += y - lastY;
+                    if (tempY > 0) {
+                        tempY = 0;
+                        offsetY = 0;
+                        invalidate();
+                    } else if (tempY < (getHeight() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize)) {
+                        tempY = (getHeight() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize);
+                        offsetY = (getHeight() - mText.size() * dip2px(mContext, 20) - mText.size() * mLineSize);
+                        invalidate();
+                    }
+                }
+                break;
+        }
+        return true;
     }
 
     /**
